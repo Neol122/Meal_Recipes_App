@@ -1,3 +1,12 @@
+// Root-level Gradle (project-level)
+
+plugins {
+    // Existing plugins (if any) can stay here
+
+    // Add the Google services Gradle plugin (do not apply here)
+    id("com.google.gms.google-services") version "4.4.4" apply false
+}
+
 allprojects {
     repositories {
         google()
@@ -5,6 +14,7 @@ allprojects {
     }
 }
 
+// Your existing custom build directory setup
 val newBuildDir: Directory =
     rootProject.layout.buildDirectory
         .dir("../../build")

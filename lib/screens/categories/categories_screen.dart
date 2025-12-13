@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../models/category.dart';
 import '../../services/api_service.dart';
 import '../meals/meals_screen.dart';
-import '../details/meal_detail_screen.dart';
 
 class CategoriesScreen extends StatefulWidget {
   const CategoriesScreen({super.key});
@@ -31,100 +30,105 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   }
 
   void search(String query) {
-    setState(() {
+    if (query.isEmpty) {
+      filtered = categories;
+    } else {
       filtered = categories
-          .where((cat) =>
-              cat.name.toLowerCase().contains(query.toLowerCase()))
+          .where((c) => c.name.toLowerCase().contains(query.toLowerCase()))
           .toList();
-    });
+    }
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Categories"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.shuffle),
-            onPressed: () async {
-              final meal = await ApiService.randomMeal();
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (_) => MealDetailScreen(meal: meal)),
-              );
-            },
-          ),
-        ],
-      ),
+      appBar: AppBar(title: const Text('Categories')),
       body: loading
-    ? const Center(child: CircularProgressIndicator())
-    : Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: TextField(
-              decoration: const InputDecoration(
-                hintText: "Search categories...",
-                border: OutlineInputBorder(),
-              ),
-              onChanged: search,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0),
-            child: Row(
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
               children: [
-                const Text(
-                  "Random recipe:",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.shuffle),
-                  onPressed: () async {
-                    final meal = await ApiService.randomMeal();
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) =>
-                              MealDetailScreen(meal: meal)),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: filtered.length,
-              itemBuilder: (context, index) {
-                final c = filtered[index];
-                return Card(
-                  margin: const EdgeInsets.all(10),
-                  child: ListTile(
-                    leading: Image.network(c.thumbnail, width: 60),
-                    title: Text(c.name),
-                    subtitle: Text(
-                      c.description,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: TextField(
+                    decoration: const InputDecoration(
+                      hintText: "Search categories...",
+                      border: OutlineInputBorder(),
                     ),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => MealsScreen(category: c.name),
+                    onChanged: search,
+                  ),
+                ),
+                Expanded(
+                  child: GridView.builder(
+                    padding: const EdgeInsets.all(8),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      childAspectRatio: 0.8,
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 8,
+                    ),
+                    itemCount: filtered.length,
+                    itemBuilder: (context, index) {
+                      final category = filtered[index];
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  MealsScreen(category: category.name),
+                            ),
+                          );
+                        },
+                        child: Card(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10)),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              // Fixed height image
+                              SizedBox(
+                                height: 120,
+                                child: ClipRRect(
+                                  borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(10)),
+                                  child: Image.network(
+                                    category.thumbnail,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  category.name,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 8.0),
+                                child: Text(
+                                  category.description,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       );
                     },
                   ),
-                );
-              },
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
     );
   }
 }
